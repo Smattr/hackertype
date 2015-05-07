@@ -71,6 +71,13 @@ static int run(char *command) {
             /* Close the master side of the PTY that we don't need */
             close(master);
 
+            /* Try to set the PTY to have the same dimensions as the original
+             * terminal; ignore failure
+             */
+            struct winsize ws;
+            ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
+            ioctl(slave, TIOCSWINSZ, &ws);
+
             /* Swap our standard descriptors for the PTY */
             if (dup2(slave, STDIN_FILENO) < 0 ||
                 dup2(slave, STDOUT_FILENO) < 0 ||
