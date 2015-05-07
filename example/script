@@ -1,0 +1,37 @@
+istruct k_page_swap_t {
+enum {
+K_TO_U,
+K_TO_K,
+U_TO_K,
+U_TO_U,
+} mode;
+void *src_vaddr;
+void *dst_vaddr;
+};
+
+int k_page_swap(k_page_swap_t *info) {
+if (info->mode == K_TO_U || info->mode == K_TO_K) {
+/* Flush caches, etc, before pulling the rug out */
+k_unify(info->src_vaddr);
+
+int r = k_unmap(info->src_vaddr);
+if (r != 0)
+return r;
+} else {
+/* No need to unify as we'll naturally flush before another access */
+
+int r = u_unmap(info->src_vaddr);
+if (r != 0)
+return r;
+}
+
+void *p = p_malloc(sizeof(page_t));
+
+if (info->mode == K_TO_K || info->mode == U_TO_K) {
+return k_map(info->dst_vaddr, p);
+} else {
+return u_map(info->dst_vaddr, p);
+}
+}
+:q!
+
