@@ -1,6 +1,6 @@
 # Hackertype
 
-Partially inspired by [hackertyper.net](hackertyper.net), Hackertype is program
+Partially inspired by [hackertyper.net](hackertyper.net), Hackertype is a program
 for following a pre-written script as you type, regardless of your input. It
 was conceived for use in terminal-based demonstrations where it is difficult to
 remember a long sequence of instructions or you are worried about making
