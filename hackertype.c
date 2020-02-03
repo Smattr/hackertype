@@ -17,8 +17,10 @@ static void reset_terminal(void) {
 }
 
 static int setup_terminal(void) {
-    if (tcgetattr(0, &old) != 0)
+    if (tcgetattr(0, &old) != 0) {
+        perror("tcgetattr");
         return -1;
+    }
 
     /* Set the terminal to non-canonical, non-echoing */
     struct termios new = old;
@@ -29,8 +31,10 @@ static int setup_terminal(void) {
     if (tcsetattr(0, TCSANOW, &new) != 0)
         return -1;
 
-    if (atexit(reset_terminal) != 0)
+    if (atexit(reset_terminal) != 0) {
+        perror("atexit");
         return -1;
+    }
 
     return 0;
 }
@@ -44,12 +48,18 @@ static int run(char *command) {
 
     /* Create a new PTY */
     int master = posix_openpt(O_RDWR|O_NOCTTY);
-    if (master < 0)
+    if (master < 0) {
+        perror("posix_openpt");
         return -1;
-    if (grantpt(master) != 0)
+    }
+    if (grantpt(master) != 0) {
+        perror("grantpt");
         return -1;
-    if (unlockpt(master) != 0)
+    }
+    if (unlockpt(master) != 0) {
+        perror("unlockpt");
         return -1;
+    }
 
     /* Flush before fork to avoid duplicated output */
     fflush(stdout);
@@ -61,16 +71,20 @@ static int run(char *command) {
         case 0: { /* child */
 
             /* Become a new session leader */
-            if (setsid() == -1)
+            if (setsid() == -1) {
+                perror("setsid");
                 exit(-1);
+            }
 
             /* Open the slave side of the PTY */
             const char *name = ptsname(master);
             if (name == NULL)
                 exit(-1);
             int slave = open(name, O_RDWR);
-            if (slave < 0)
+            if (slave < 0) {
+                perror("open");
                 exit(-1);
+            }
 
             /* Close the master side of the PTY that we don't need */
             close(master);
@@ -85,13 +99,17 @@ static int run(char *command) {
             /* Swap our standard descriptors for the PTY */
             if (dup2(slave, STDIN_FILENO) < 0 ||
                 dup2(slave, STDOUT_FILENO) < 0 ||
-                dup2(slave, STDERR_FILENO) < 0)
+                dup2(slave, STDERR_FILENO) < 0) {
+                perror("dup2");
                 exit(-1);
+            }
             close(slave);
 
             /* Make the PTY our controlling terminal */
-            if (ioctl(fileno(stdin), TIOCSCTTY, 1) != 0)
+            if (ioctl(fileno(stdin), TIOCSCTTY, 1) != 0) {
+                perror("ioctl(TIOCSCTTY)");
                 exit(-1);
+            }
 
             /* Run the command */
             char *argv[] = {"sh", "-c", command, NULL};
@@ -102,6 +120,7 @@ static int run(char *command) {
         }
 
         case -1: /* fork failed */
+            perror("fork");
             return -1;
     }
 
