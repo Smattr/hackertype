@@ -24,7 +24,7 @@ Vim.
 
 ## Support
 
-If you have any issues or questions, please file something on the Bitbucket
+If you have any issues or questions, please file something on the Github
 tracker or email me
 [matthew.fernandez@gmail.com](mailto:matthew.fernandez@gmail.com).
 
