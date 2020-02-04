@@ -60,6 +60,10 @@ static int run(char *command) {
 
         case 0: { /* child */
 
+            /* Become a new session leader */
+            if (setsid() == -1)
+                exit(-1);
+
             /* Open the slave side of the PTY */
             const char *name = ptsname(master);
             if (name == NULL)
@@ -84,10 +88,6 @@ static int run(char *command) {
                 dup2(slave, STDERR_FILENO) < 0)
                 exit(-1);
             close(slave);
-
-            /* Become a new session leader */
-            if (setsid() == -1)
-                exit(-1);
 
             /* Make the PTY our controlling terminal */
             if (ioctl(fileno(stdin), TIOCSCTTY, 1) != 0)
