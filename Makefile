@@ -1,2 +1,2 @@
 hackertype: hackertype.c
-	gcc -W -Wall -Wextra -O2 $^ -o $@
+	gcc -std=c99 -Wall -Wextra -O2 $^ -o $@
